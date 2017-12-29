@@ -19,6 +19,9 @@ will not work without fixing error 43, see below
 pretty good guide  
 https://bufferoverflow.io/gpu-passthrough/
 
+Obligatory Arch wiki entry:  
+https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF
+
 # Checking software requirements
 Just check if your kernel supports vfio-pci via
 ```
