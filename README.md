@@ -79,7 +79,7 @@ then remake the grub config via:
 
 cool, now reboot and choose the entry in the grub menu that you have modified.
 
-**Step 3 - did it work?**
+**Step 3 - did it work?**  
 open a terminal and enter
 ```
 dmesg | grep -e DMAR -e IOMMU
