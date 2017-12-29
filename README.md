@@ -27,7 +27,7 @@ modinfo vfio-pci
 if this does not throw "wtf is vfio-pci?" then you are golden
 
 **You can skip this if you didnt get an error**  
-Easiest things first, you need some kernel after 4.1 I belive, to support vfio-pci. You can check your kernel version via  
+You need some kernel after 4.1 I belive, to support vfio-pci. You can check your kernel version via  
 ```
 uname -r
 ```
