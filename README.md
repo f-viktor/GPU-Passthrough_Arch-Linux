@@ -1,7 +1,7 @@
-# PCIE-Passthrough_Arch-Linux
+# GPU-Passthrough on Arch Linux
 Config files and down-to-earth setup guide for pcie passthrough on arch linux  
-Setup:
 
+# Setup
 Date: 2017  
 Kernel: 4.14.idontremember  
 CPU: i5-4570 (host gpu) 
@@ -404,3 +404,6 @@ https://github.com/sk1080/nvidia-kvm-patcher
 lets say you created the image in the wrong place or wanna borrow it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
 and move the file that it was pointing at  
+
+**this is nice and all but it sure is pretty quiet**
+will get back to you once I figure out how to fix the audio.
