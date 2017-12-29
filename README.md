@@ -72,7 +72,7 @@ and enable it.
 ThinkPads currently come with a bios that mark this as vti-d and vti-x and MSI motherboards come with a bios that call this "Virtualization technology" as long as you found anything relevant to this, enable it. Look in Advanced settings, cpu settings, OC settings it may be well hidden. If it aint there, you may be out of luck. If you enabled it, boot into Arch.
 
 **Step 2 - enabling it in the bootloader**  
-For the purposes of this demonstration (and also because I've never used anything else), I'll describe how to do it if you use grub as a bootloader. If you use "Systemd-boot" whatever that is, a link in at the start of this details that.
+For the purposes of this demonstration (and also because I've never used anything else), I'll describe how to do it if you use grub as a bootloader. If you use "Systemd-boot" whatever that is, a link https://dominicm.com/gpu-passthrough-qemu-arch-linux/ that details that.
 
 Please bear in mind, that your config file will be different to mine, however nothing else needs to be changed for this to work. You'll have  a number of entries in your bootloader (these represent the entries in the grub menu when you boot), you can add this to all of them, or just to the one you usually use. Add it to one and choose that one in the grub menu.
 
