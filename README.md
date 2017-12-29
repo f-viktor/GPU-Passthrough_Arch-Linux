@@ -1,10 +1,17 @@
 # PCIE-Passthrough_Arch-Linux
 config files and down-to-earth setup guide for pcie passthrough on arch linux
-This was done (2017) on standard ARCH kernel 4.14. using a GTX1060 and an i5-4570(the integrated gpu was used for the host linux)
+This was done (2017) on standard ARCH x86_64 kernel 4.14. using a GTX1060 and an i5-4570(the integrated gpu was used for the host linux)
 the guest is a windows 8.1 (7 does not support UEFI which is bad for some reason so you'll have an easier time doing it with 8 and 10)
 
 a guide out of many, which is base this on. Not completely up to date, will throw issues
 https://dominicm.com/gpu-passthrough-qemu-arch-linux/
+
+pretty good video, if you're the visual type:
+https://www.youtube.com/watch?v=6FI31QDtyy4
+will not work without fixing error 43, see below
+
+pretty good guide
+https://bufferoverflow.io/gpu-passthrough/
 
 # Checking software requirements
 easiest things first, you need some kernel after 4.1 I belive to support vfio-pci, you can check your kernel version via 
@@ -12,13 +19,18 @@ uname -r
 or
 uname -a
 
+if you for some reason do not have an up-to-date kernel.... why? Also there is a way to do this witohut vfio-pci with pci-stub, that should work on older kernels, but I have no idea how.
+just write
+sudo pacman -Syyu
+to update your arch and thank me later ;)
+
 you can also just check if your kernel supports vfio-pci via
 modinfo vfio-pci
 if this does not throw "i dont know wtf is vfio-pci" then you are golden
 
 # checking hardware requirements
 So there is a bunch of links and things on the arch wiki page for what CPU/motherboard supports this,
-however none of those links are complete and very clear to understand.
+however none of those links are complete and very clear to understand. I read somewhere that your GPU should have an UEFI rom. I'll be the first to say I have no idea what that means, and how to check this. if you have a gpu that is worth passing through it probably supports it
 
 Do note that if you have two of the same card(e.g.: an msi GTX1060 and another msi GTX1060) and wanna pass only one, you're gonna have a hard time. Dunno if this applies to cards made by different manufacturers, run lspci -nn and check if they have different hardware IDs (gonna be in the format of [1337:ree1] )
 there is soem script on the arch wiki for this but I have no idea how that works and I've never tried it.
@@ -115,7 +127,7 @@ This is not a problem, you do not have to do anything in this case. However be s
 This ain't good sonny boy, but do not worry. 
 I never had to do this, I believe this is kind of a rare issue, but here is how you fix it:
 Fix#1 - Turn off your PC, rip out your GPU, put it in another PCIe slot if you have one, check again.
-Fix#2 - apply an ACS patch.
+Fix#2 - apply the ACS patch.
 The only way I know of how to do this involves installing the patched kernel from AUR and enabling it in the bootloader, here's how you do that:
 https://dominicm.com/install-vfio-kernel-arch-linux/
 do not use packer, its a mess, just 
@@ -141,32 +153,170 @@ save it and reboot, then choose this kernel in the boot menu (it may be under ad
 check if it is the vfio kernel via 
 uname -a
 should have vfio written in it somewhere, that means you did it.
+This should allow you to pass any device regardless of IOMMU groups, however you still wanna pass the gpu hdmi audio if you have one, as some cards just do not work without it for reasons beyond me.
+
+# Adding vfio kernelmodules
+you gotta add the vfio kernelmodules or something so the vfio drivers can hold your gpu for you when the VM is not running. You gotta edit:
+/etc/mkinitcpio.conf
+There is going to be a line like MODULES() or MODULES=""  (depending on wether your kernel is in python2 or python3 eh? :D)
+regardless add the following between them:
+vfio vfio_iommu_type1 vfio_pci vfio_virqfd
+if there was anything already there, be sure to write this **before** whatever was there, e.g.:
+MODULES(vfio vfio_iommu_type1 vfio_pci vfio_virqfd i915 nouveau)
+
+save the file then run
+sudo mkinitcpio -p linux
 
 
-changed kernelmodules in /etc/mkinitcpio.conf
-added to the MODULES(  ide ) list separated by spaces then
+# Defining devices to be bound by vfio drivers
+Okay cool, so now vfio drivers will be the first to choose devices
+you gotta tell them what devices to choose tho.
+edit
+sudo nano /etc/modprobe.d/vfio.conf
+(dont worry if the file does not exist, for me the entire directory was missing)
 
-created /etc/modprobe.d/vfio.conf file and entered device ids as such:
+and write the line
 options vfio-pci ids=1002:67df,1002:aaf0
+where the ids are the hardware ID of the GPU and HDMI audio device from the output of lspci -nn
 
-then remade kernel or soemthing by this:
-# mkinitcpio -p linux
+then reboot
+
+afte rebooting, write
+lspci -nnk
+and check if the devices were bound by the vfio-pci driver
+it should look something like this 
+```
+    01:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Ellesmere [Polaris10] [1002:67df] (rev c7)
+    	Subsystem: Advanced Micro Devices, Inc. [AMD/ATI] Device [1002:0b37]
+    	Kernel driver in use: vfio-pci
+    01:00.1 Audio device [0403]: Advanced Micro Devices, Inc. [AMD/ATI] Device [1002:aaf0]
+    	Subsystem: Advanced Micro Devices, Inc. [AMD/ATI] Device [1002:aaf0]
+    	Kernel driver in use: vfio-pci
+    	Kernel modules: snd_hda_intel
+```
+if it doesnt look like that, you messed something up, recheck your conf files, re run 
+sudo mkinitcpio -p linux
+re reboot
+
+you can also check
+sudo dmesg | grep -i vfio
+the device ids should be in there somewhere if its working right
+
+# Installing necessary software for emulation
+sudo pacman -S qemu libvirt ovmf virt-manager
+boy, that was an easy step, really refreshing isn't it?
+
+# Getting the latest ovmf
+Now its true that we installed ovmf in the last step, but the repo wersion includes firmware files that just did not work for me. When I tried to boot the windows installer it just blanked, and threw me in the UEFI shell. Sidenote: if that happens to you, try typing exit and opening the image from the boot manager, or typing fs0: and manually browsing to the /boot/efi folder and typing the .efi file name, see if that works. (side sidenote, it probably wont)
+
+So there is a great guy who does this:
+https://www.kraxel.org/repos/jenkins/edk2/
+you'll need the one that looks like: edk2.git.ovmf-x64-<somedate>.<jibberish>.<jibberish>.noarch.rpm
+download that one, and since it is in .rpm, install rpmextract:
+sudo pacman -S rpmextract
+
+now do this:
+```
+rpmextract.sh edk2.git-ovmf-x64-0-20150916.b1214.g2f667c5.noarch.rpm 
+ls edk2.git-ovmf-x64-0-20150916.b1214.g2f667c5.noarch.rpm usr 
+sudo cp -R usr/share/* /usr/share/
+```
+Your files should be in 
+/usr/share/edk2.git/ovmf-x64/
+after this.
+
+# Apllying the latest ovmf
+now we gotta tell qemu to actually use what you downloaded
+for this you'll need to edit this file:
+/etc/libvirt/qemu.conf
+the whole thing should be commented out
+there is going to be commented lines that look something like this(check for format clues), but feel free to just add this to the end of the file:
+```
+nvram = [
+"/usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd:/usr/share/edk2.git/ovmf-x64/OVMF_VARS-pure-efi.fd"
+]
+```
+check if those two files actually exist, I may have mistyped something. If you do not even get a bootloader on your vm, you messed this step up.
+
+# Enable libvirtd
+just open a console and type
+systemctl enable --now libvirtd
+systemctl enable virtlogd.socket
+do a reboot just for good measure, even though its probably unnecessary
+
+# Creating the VM
+kay so lets do this, LEEEEROOOOY JENKIIIHNS
+the video I mentioned earlier makes this way easier but misses some things:
+https://www.youtube.com/watch?v=6FI31QDtyy4
+
+**Step 1: starting virt-manager**
+before starting virt-manager, you probably want to start the default network so it does not complain about it
+just do 
+sudo virsh net-start default
+and to start virt-manager
+sudo virt-manager
+you wanna run this as root. especially if you get some sort of login error from virtmanager
+
+**Step 2: create new vm**
+basic stuff, select windows iso, set resources, check customize options.
+
+on the configure window set the following (you gotta check appy  on every screen)
+CPU:
+  copy host CPU configuration - check
+IDE Disk 1:
+  change IDE to VirtIO
+IDE CDrom:
+  change IDE to SATA and browse windows .iso
+Add Hardware -> Storage-> Cd drive,
+  change IDE to SATA and browse viirtio driver (https://fedoraproject.org/wiki/Windows_Virtio_Drivers)
+Boot Options
+  Enable boot menu - check
+  set boot order as: #1 Windows CD #2 virto driver #3 hdd
+Add Hardware-PCIe something
+  select the GPU and HDMI audio devices in PCIE
+
+At this point you should be able install windows in a window
+you may have to load the virtio driver when selecting the harddrive its not clear, i just installed on an IDE drive accidentally, I'll redo this.
+
+# After installation
+Remove the devices QXL and spice, and change the windows should now come through your GPU that you passed through.
+mouse and keyboard will no longer work however,
+you can plug in extra mice and keyboard, or just give it your own,
+Add Hardware-> USB something
+add your keyboard first, as you'll need your mouse to add your mouse.
+
+Install the latest drivers, nvidia drivers will install but will refuse to work.
+In device manager the device will be disabled due to error: 43 and your resolution winn be bound to 800x600
+to fix this you'll have to find the .xml file of your VM, 
+find / -name "<nameofyourvm>.xml"
+it should be in /etc/qemu/<nameofyourvm>.xml or something like this
+
+you'll have to add the lines
+(domain, features and hyperv will probably already be there, but kvm may not be there, just ensure these all exist in this order in your xml)
+
+```
+<domain>
+    ...
+        <features>
+            ...
+            <kvm>
+                <hidden state='on'/>
+            </kvm>
+            ...
+            <hyperv>
+                ...
+                <vendor_id state='on' value='whatever'/>
+            </hyperv>
+            ...
+        </features>
+    ...
+</domain>
+```
+
+save the file, reboot a few times, etc
+the driver should now work.
+however it may not for some people
+there is a workaround by patching the driver itself on the guest windows machine, it is kind of experimental:
+https://github.com/sk1080/nvidia-kvm-patcher
 
 
-okay so needed latest and greatest ovmf for it to boot the installer, then write exit in uefi shell and open from boot options maybe
-this is probably a way better guide:
-https://bufferoverflow.io/gpu-passthrough/
-
-probably shouldve done this instead of hand modifying /boot/grub/grub.cfg:
-sudo grub-mkconfig -o /boot/grub/grub.cfg
-
-totally didnt need acs
-
-you have to change the xml file locate vmame
-its in /etc/something/wmname.xml
-and add lines
-<kvm>
-some shit i forgot
-</kvm>
-
-and something in the hypervisor tags also
