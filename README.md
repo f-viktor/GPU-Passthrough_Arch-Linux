@@ -163,7 +163,7 @@ in this case, I think you might have messed something up, I have no idea how you
 You're golden.
 
 **Possibility 3: the GPU built in HDMI audio device is also in that group and/or the PCI bridge is in that group**  
-This should be easy to spot, the HDMI audio device is going to have the same NVIDIA tag in its name, etc, the PCI bridge is gonnea bi called PCI bridge, its pretty straightforward.  
+This should be easy to spot, the HDMI audio device is going to have the same NVIDIA tag in its name, etc, the PCI bridge is gonna be called PCI bridge. 
 
 This is not a problem, you do not have to do anything in this case. However be sure, that when you bind the devices, and pass the devices and do anything always bind the GPU+ the HDMI audio device together, but **not** the PCI bridge. e.g. later on we'll have a step where we add device IDs to a config file. Only add the GPU and the audio device, do **not** add the PCI bridge. We'll also have a step where we add pci devices in qemu, do the same, do **not** add the pci bridge.
 
@@ -171,7 +171,7 @@ This is not a problem, you do not have to do anything in this case. However be s
 This ain't good sonny boy, but do not worry.  
 I never had to do this, I believe this is kind of a rare issue, but here is how you fix it:  
 
-**Fix#1**  
+**Fix#1 - Welcome to the real world**  
 Turn off your PC, rip out your GPU, put it in another PCIe slot if you have one, check again.  
 
 **Fix#2 - Apply the ACS patch.**  
@@ -189,12 +189,12 @@ and
 ```
 makepkg --skippgpcheck
 ```
-this is gonna take like 4 hours, I'm not even joking
+this is gonna take like 4 hours, I'm not even joking.  
 it may also throw things in the beginning like "command not found fakeroot" or something else, whatever it throws just install it with:
 ```
 sudo pacman -S fakeroot
 ```
-and restart
+and restart it  
 after its done do 
 ```
 sudo pacman -U linux-vfio-4.9.8-1-x86_64.pkg.tar.xz
@@ -206,7 +206,7 @@ now remake grub
 # grub-mkconfig -o /boot/grub/grub.cfg
 ```
 should automagically find the new kernels that are named something like vmlinuz-linux-vifo  
-find that line in grub.conf (same file we added intel_iommu='on') and add to that line separated by a space:
+find that line in grub.conf (same file we added `intel_iommu=on`) and add to that line separated by a space:
 ```
 pcie_acs_override=downstream
 ```
@@ -414,6 +414,9 @@ there is a workaround by patching the driver itself on the guest windows machine
 https://github.com/sk1080/nvidia-kvm-patcher  
 
 # Plus tips
+**config doesn't change in virt-manager**
+If you changed some config in a vm xml or just some anytihng you'll have to restart a good few service before virt-manager realises this, your best bet is to just reboot.
+
 **moving the image**  
 lets say you created the image in the wrong place or wanna lend it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
