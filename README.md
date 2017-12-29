@@ -1,11 +1,13 @@
 # PCIE-Passthrough_Arch-Linux
-config files and down-to-earth setup guide for pcie passthrough on arch linux  
+Config files and down-to-earth setup guide for pcie passthrough on arch linux  
+Setup:
+
 Date: 2017  
 Kernel: 4.14.idontremember  
-CPU: i5-4570  
-GPU: GTX1060  
+CPU: i5-4570 (host gpu) 
+GPU: GTX1060 (guest gpu)
 RAM: 8GB (dont listen to the haters who say you need at least 12)  
-Guest: Windwos 8.1 (7 does not support UEFI which is bad for some reason so you'll have an easier time doing it with 8 and 10)  
+Guest: Windwos 8.1 (7 does not support UEFI boot which is bad for some reason so you'll have an easier time doing it with 8 and 10)  
 
 a guide out of many, which is base this on. Not completely up to date, will throw issues  
 https://dominicm.com/gpu-passthrough-qemu-arch-linux/
@@ -18,18 +20,26 @@ pretty good guide
 https://bufferoverflow.io/gpu-passthrough/
 
 # Checking software requirements
-easiest things first, you need some kernel after 4.1 I belive to support vfio-pci, you can check your kernel version via 
-uname -r 
-or
+easiest things first, you need some kernel after 4.1 I belive to support vfio-pci, you can check your kernel version via  
+```
+uname -r
+```
+or  
+```
 uname -a
+```
 
-if you for some reason do not have an up-to-date kernel.... why? Also there is a way to do this witohut vfio-pci with pci-stub, that should work on older kernels, but I have no idea how.
-just write
-sudo pacman -Syyu
+if you for some reason do not have an up-to-date kernel.... why? Also there is a way to do this witohut vfio-pci with pci-stub, that should work on older kernels, but I have no idea how.  
+just write  
+```
+# pacman -Syyu
+```
 to update your arch and thank me later ;)
 
 you can also just check if your kernel supports vfio-pci via
+```
 modinfo vfio-pci
+```
 if this does not throw "i dont know wtf is vfio-pci" then you are golden
 
 # checking hardware requirements
@@ -37,13 +47,14 @@ So there is a bunch of links and things on the arch wiki page for what CPU/mothe
 however none of those links are complete and very clear to understand. I read somewhere that your GPU should have an UEFI rom. I'll be the first to say I have no idea what that means, and how to check this. if you have a gpu that is worth passing through it probably supports it
 
 Do note that if you have two of the same card(e.g.: an msi GTX1060 and another msi GTX1060) and wanna pass only one, you're gonna have a hard time. Dunno if this applies to cards made by different manufacturers, run lspci -nn and check if they have different hardware IDs (gonna be in the format of [1337:ree1] )
-there is soem script on the arch wiki for this but I have no idea how that works and I've never tried it.
+there is some script on the arch wiki for this but I have no idea how that works and I've never tried it.
 
-**What you need to know:**
-*"A rose by any other name is just as botnet"*
-IOMMU=Vti-d=Vti-x="Virtualization technology"=(whatever amd calls this) - its all the same s#!t mane.
+**What you actually need to know:**
+*"A rose by any other name is just as botnet"*  
+IOMMU==Vti-d==Vti-x=="Virtualization technology"==(whatever amd calls this) - its all the same s#!t mane.  
 Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words.
 
+**Bottom line**
 It's easier to just try and check. You can enable IOMMU and check whether it worked.
 
 # Enabling IOMMU
@@ -55,9 +66,13 @@ For the purposes of this demonstration (and also because I've never used anythin
 
 Please bear in mind, that your config file will be different to mine, however nothing else needs to be changed for this to work. You'll have  a number of entries in your bootloader (these represent the entries in the grub menu when you boot), you can add this to all of them, or just to the one you usually use. Add it to one and choose that one in the grub menu.
 
-What you wanna do is open /etc/default/grub (this may be in a different place depending on your boot folder) and add **intel_iommu=on** in the place I added it in the uploaded config file. (for amd cpus this would be amd_iommu=on)
-then remake the grub config via:
-**#grub-mkconfig -o /boot/grub/grub.cfg**
+What you wanna do is open 
+```
+/etc/default/grub
+```
+(this may be in a different place depending on your boot folder) and add `intel_iommu=on` in the place I added it in the uploaded config file. (for amd cpus this would be `amd_iommu=on`)
+then remake the grub config via:  
+`# grub-mkconfig -o /boot/grub/grub.cfg`
 (this is the arch equivalent of update-grub form debian if you read one of those pesky debian guides)
 
 cool, now reboot and choose the entry in the grub menu that you have modified.
@@ -323,4 +338,8 @@ however it may not for some people
 there is a workaround by patching the driver itself on the guest windows machine, it is kind of experimental:
 https://github.com/sk1080/nvidia-kvm-patcher
 
-
+# Plus tips
+**moving the image**
+lets say you created the image in the wrong place or wanna borrow it to your friend,
+real simple, you just gotta change the disk line in /etc/qemu/wmaneme.xml
+and move the file that it was pointing at
