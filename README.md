@@ -138,47 +138,56 @@ Now look at the output of `find /sys/kernel/iommu_groups/ -type l`. Its gonna ha
 ```
 at the end of these entries you also have a number in the format **00:02.0**
 
-so every line in `find /sys/kernel/iommu_groups/ -type l` contains a group ID
-```
-/sys/kernel/iommu_groups/**1**/devices/0000:00:02.0
-```
-and a device ID
-```
-/sys/kernel/iommu_groups/1/devices/0000:**00:02.0**
-```
+so every line in `find /sys/kernel/iommu_groups/ -type l` contains a group ID  
+/sys/kernel/iommu_groups/**1**/devices/0000:00:02.0  
+and a device ID  
+/sys/kernel/iommu_groups/1/devices/0000:**00:02.0**  
 
-what you wanna do is look for the line that has your GPU's device ID (identified from lspci -nn) and check the group ID of that line. There lie now 4 possibilities in front of us:
-**Possibility 1: there is no line containing the hardware ID of your GPU in the output of find /sys/kernel/iommu_groups/ -type l**
+
+what you wanna do is look for the line that has your GPU's device ID (identified from `lspci -nn`) and check the group ID of that line. There lie now 4 possibilities in front of us:  
+
+**Possibility 1: there is no line containing the hardware ID of your GPU in the output of find /sys/kernel/iommu_groups/ -type l**  
 in this case, I think you might have messed something up, I have no idea how you did this.
 
-**Possibility 2: the hardware ID of your GPU is the only one in its group, there are no other lines with that group ID**
+**Possibility 2: the hardware ID of your GPU is the only one in its group, there are no other lines with that group ID**  
 You're golden.
 
-**Possibility 3: the GPU built in HDMI audio device is also in that group and/or the PCI bridge is in that group**
-This should be easy to spot, the HDMI audio device is going to have the same NVIDIA tag in its name, etc, the PCI bridge is gonnea bi called PCI bridge, its pretty straightforward.
+**Possibility 3: the GPU built in HDMI audio device is also in that group and/or the PCI bridge is in that group**  
+This should be easy to spot, the HDMI audio device is going to have the same NVIDIA tag in its name, etc, the PCI bridge is gonnea bi called PCI bridge, its pretty straightforward.  
+
 This is not a problem, you do not have to do anything in this case. However be sure, that when you bind the devices, and pass the devices and do anything always bind the GPU+ the HDMI audio device together, but **not** the PCI bridge. e.g. later on we'll have a step where we add device IDs to a config file. Only add the GPU and the audio device, do **not** add the PCI bridge. We'll also have a step where we add pci devices in qemu, do the same, do **not** add the pci bridge.
 
-**Possibility 4: the GPU is grouped with all kinds of wierd things, like an audio card or some network controller or another GPU you wanna pass**
-This ain't good sonny boy, but do not worry. 
-I never had to do this, I believe this is kind of a rare issue, but here is how you fix it:
-Fix#1 - Turn off your PC, rip out your GPU, put it in another PCIe slot if you have one, check again.
-Fix#2 - apply the ACS patch.
-The only way I know of how to do this involves installing the patched kernel from AUR and enabling it in the bootloader, here's how you do that:
-https://dominicm.com/install-vfio-kernel-arch-linux/
-do not use packer, its a mess, just 
-git clone https://aur.archlinux.org/linux-vfio.git 
-go into the directory and
+**Possibility 4: the GPU is grouped with all kinds of wierd things, like an audio card or some network controller or another GPU you wanna pass**  
+This ain't good sonny boy, but do not worry.  
+I never had to do this, I believe this is kind of a rare issue, but here is how you fix it:  
+Fix#1 - Turn off your PC, rip out your GPU, put it in another PCIe slot if you have one, check again.  
+Fix#2 - apply the ACS patch.  
+The only way I know of how to do this involves installing the patched kernel from AUR and enabling it in the bootloader, here's how you do that:  
+https://dominicm.com/install-vfio-kernel-arch-linux/  
+do not use packer, its a mess, just   
+```
+git clone https://aur.archlinux.org/linux-vfio.git   
+```
+go into the directory and  
+```
 makepkg --skippgpcheck
+```
 this is gonna take like 4 hours, I'm not even joking
 it may also throw things in the beginning like "command not found fakeroot" or something else, whatever it throws just install it with:
+```
 sudo pacman -S fakeroot
+```
 and restart
 after its done do 
+```
 sudo pacman -U linux-vfio-4.9.8-1-x86_64.pkg.tar.xz
 sudo pacman -U linux-vfio-headers-4.9.8-1-x86_64.pkg.tar.xz
+```
 
 now remake grub
-#grub-mkconfig -o /boot/grub/grub.cfg
+```
+# grub-mkconfig -o /boot/grub/grub.cfg
+```
 should automagically find the new kernels that are named something like vmlinuz-linux-vifo
 
 find that line in grub.conf (same file we added intel_iommu='on') and add to that line separated by a space:
