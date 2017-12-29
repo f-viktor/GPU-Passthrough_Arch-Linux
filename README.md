@@ -56,7 +56,7 @@ there is some script on the arch wiki for this but I have no idea how that works
 **blabbering about marketing buzzwords 2: electric blabberoo**  
 *"A rose by any other name is just as botnet"*  
 IOMMU==Vti-d==Vti-x=="Virtualization technology"==(whatever amd calls this) - its all the same s#!t mane.  
-Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words.
+Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words. I may also write vfio as vifo because I misread it the first time I saw it and it just burned into my subconcious.
 
 
 # Enabling IOMMU
@@ -181,7 +181,11 @@ do not use packer, its a mess, just
 ```
 git clone https://aur.archlinux.org/linux-vfio.git   
 ```
-go into the directory and  
+go into the directory
+```
+cd ./linux-vfio/
+```
+and  
 ```
 makepkg --skippgpcheck
 ```
