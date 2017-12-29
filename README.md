@@ -160,8 +160,11 @@ This is not a problem, you do not have to do anything in this case. However be s
 **Possibility 4: the GPU is grouped with all kinds of wierd things, like an audio card or some network controller or another GPU you wanna pass**  
 This ain't good sonny boy, but do not worry.  
 I never had to do this, I believe this is kind of a rare issue, but here is how you fix it:  
-Fix#1 - Turn off your PC, rip out your GPU, put it in another PCIe slot if you have one, check again.  
-Fix#2 - apply the ACS patch.  
+
+**Fix#1**  
+Turn off your PC, rip out your GPU, put it in another PCIe slot if you have one, check again.  
+
+**Fix#2 - Apply the ACS patch.**  
 The only way I know of how to do this involves installing the patched kernel from AUR and enabling it in the bootloader, here's how you do that:  
 https://dominicm.com/install-vfio-kernel-arch-linux/  
 do not use packer, its a mess, just   
@@ -188,45 +191,59 @@ now remake grub
 ```
 # grub-mkconfig -o /boot/grub/grub.cfg
 ```
-should automagically find the new kernels that are named something like vmlinuz-linux-vifo
-
+should automagically find the new kernels that are named something like vmlinuz-linux-vifo  
 find that line in grub.conf (same file we added intel_iommu='on') and add to that line separated by a space:
+```
 pcie_acs_override=downstream
-save it and reboot, then choose this kernel in the boot menu (it may be under advanced options in the grub menu)
-
+```
+save it and reboot, then choose this kernel in the boot menu (it may be under advanced options in the grub menu)  
 check if it is the vfio kernel via 
+```
 uname -a
-should have vfio written in it somewhere, that means you did it.
+```
+should have vfio written in it somewhere, that means you did it.  
 This should allow you to pass any device regardless of IOMMU groups, however you still wanna pass the gpu hdmi audio if you have one, as some cards just do not work without it for reasons beyond me.
 
 # Adding vfio kernelmodules
-you gotta add the vfio kernelmodules or something so the vfio drivers can hold your gpu for you when the VM is not running. You gotta edit:
-/etc/mkinitcpio.conf
-There is going to be a line like MODULES() or MODULES=""  (depending on wether your kernel is in python2 or python3 eh? :D)
-regardless add the following between them:
+you gotta add the vfio kernelmodules or something so the vfio drivers can hold your gpu for you when the VM is not running. You gotta:
+```
+# vim /etc/mkinitcpio.conf
+```
+There is going to be a line like `MODULES()` or `MODULES=""`  (depending on wether your kernel is in python2 or python3 eh? :D)  
+regardless add the following between the "" or ():  
+```
 vfio vfio_iommu_type1 vfio_pci vfio_virqfd
+```
 if there was anything already there, be sure to write this **before** whatever was there, e.g.:
+```
 MODULES(vfio vfio_iommu_type1 vfio_pci vfio_virqfd i915 nouveau)
-
-save the file then run
+```
+save the file, then run:
+```
 sudo mkinitcpio -p linux
-
+```
 
 # Defining devices to be bound by vfio drivers
 Okay cool, so now vfio drivers will be the first to choose devices
 you gotta tell them what devices to choose tho.
 edit
-sudo nano /etc/modprobe.d/vfio.conf
+```
+# vim /etc/modprobe.d/vfio.conf
+```
 (dont worry if the file does not exist, for me the entire directory was missing)
 
 and write the line
+```
 options vfio-pci ids=1002:67df,1002:aaf0
-where the ids are the hardware ID of the GPU and HDMI audio device from the output of lspci -nn
+```
+where the ids= are the hardware ID of the GPU and HDMI audio device from the output of `lspci -nn`
 
 then reboot
 
 afte rebooting, write
+```
 lspci -nnk
+```
 and check if the devices were bound by the vfio-pci driver
 it should look something like this 
 ```
@@ -239,26 +256,33 @@ it should look something like this
     	Kernel modules: snd_hda_intel
 ```
 if it doesnt look like that, you messed something up, recheck your conf files, re run 
+```
 sudo mkinitcpio -p linux
+```
 re reboot
 
 you can also check
+```
 sudo dmesg | grep -i vfio
-the device ids should be in there somewhere if its working right
+```
+the device ids should be in there somewhere if it's working right
 
 # Installing necessary software for emulation
+```
 sudo pacman -S qemu libvirt ovmf virt-manager
+```
 boy, that was an easy step, really refreshing isn't it?
 
 # Getting the latest ovmf
-Now its true that we installed ovmf in the last step, but the repo wersion includes firmware files that just did not work for me. When I tried to boot the windows installer it just blanked, and threw me in the UEFI shell. Sidenote: if that happens to you, try typing exit and opening the image from the boot manager, or typing fs0: and manually browsing to the /boot/efi folder and typing the .efi file name, see if that works. (side sidenote, it probably wont)
+Now its true that we installed ovmf in the last step, but the repo wersion includes firmware files that just did not work for me. When I tried to boot the windows installer it just blanked, and threw me in the UEFI shell. Sidenote: if that happens to you, try typing exit and opening the image from the boot manager, or typing `fs0:` and manually browsing to the `/boot/efi` folder in the windows disk and typing the .efi file name, see if that works. (side sidenote, it probably wont)
 
-So there is a great guy who does this:
-https://www.kraxel.org/repos/jenkins/edk2/
-you'll need the one that looks like: edk2.git.ovmf-x64-<somedate>.<jibberish>.<jibberish>.noarch.rpm
-download that one, and since it is in .rpm, install rpmextract:
+So there is a great guy who does this:  
+https://www.kraxel.org/repos/jenkins/edk2/  
+you'll need the one that looks like: `edk2.git.ovmf-x64-<somedate>.<jibberish>.<jibberish>.noarch.rpm`  
+download that one, and since it is in .rpm, install rpmextract:  
+```
 sudo pacman -S rpmextract
-
+```
 now do this:
 ```
 rpmextract.sh edk2.git-ovmf-x64-0-20150916.b1214.g2f667c5.noarch.rpm 
@@ -266,13 +290,17 @@ ls edk2.git-ovmf-x64-0-20150916.b1214.g2f667c5.noarch.rpm usr
 sudo cp -R usr/share/* /usr/share/
 ```
 Your files should be in 
+```
 /usr/share/edk2.git/ovmf-x64/
+```
 after this.
 
 # Apllying the latest ovmf
 now we gotta tell qemu to actually use what you downloaded
 for this you'll need to edit this file:
-/etc/libvirt/qemu.conf
+```
+# vim /etc/libvirt/qemu.conf
+```
 the whole thing should be commented out
 there is going to be commented lines that look something like this(check for format clues), but feel free to just add this to the end of the file:
 ```
@@ -284,42 +312,48 @@ check if those two files actually exist, I may have mistyped something. If you d
 
 # Enable libvirtd
 just open a console and type
+```
 systemctl enable --now libvirtd
 systemctl enable virtlogd.socket
+```
 do a reboot just for good measure, even though its probably unnecessary
 
 # Creating the VM
-kay so lets do this, LEEEEROOOOY JENKIIIHNS
-the video I mentioned earlier makes this way easier but misses some things:
-https://www.youtube.com/watch?v=6FI31QDtyy4
+kay so lets do this, LEEEEROOOOY JENKIIIHNS  
+the video I mentioned earlier makes this way easier but misses some things:  
+https://www.youtube.com/watch?v=6FI31QDtyy4  
 
 **Step 1: starting virt-manager**
-before starting virt-manager, you probably want to start the default network so it does not complain about it
-just do 
-sudo virsh net-start default
+before starting virt-manager, you probably want to start the default network so it does not complain about it  
+just do   
+```
+# virsh net-start default
+```
 and to start virt-manager
-sudo virt-manager
-you wanna run this as root. especially if you get some sort of login error from virtmanager
+```
+# virt-manager
+```
+you wanna run this as root. especially if you get some sort of login error from virtmanager otherwise
 
 **Step 2: create new vm**
 basic stuff, select windows iso, set resources, check customize options.
 
-on the configure window set the following (you gotta check appy  on every screen)
-CPU:
-  copy host CPU configuration - check
-IDE Disk 1:
-  change IDE to VirtIO
-IDE CDrom:
-  change IDE to SATA and browse windows .iso
-Add Hardware -> Storage-> Cd drive,
-  change IDE to SATA and browse viirtio driver (https://fedoraproject.org/wiki/Windows_Virtio_Drivers)
-Boot Options
-  Enable boot menu - check
-  set boot order as: #1 Windows CD #2 virto driver #3 hdd
-Add Hardware-PCIe something
-  select the GPU and HDMI audio devices in PCIE
+on the configure window set the following (you gotta check appy  on every screen)  
+CPU:  
+  copy host CPU configuration - check  
+IDE Disk 1:  
+  change IDE to VirtIO  
+IDE CDrom:  
+  change IDE to SATA and browse windows .iso  
+Add Hardware -> Storage-> Cd drive,  
+  change IDE to SATA and browse viirtio driver (https://fedoraproject.org/wiki/Windows_Virtio_Drivers)  
+Boot Options  
+  Enable boot menu - check  
+  set boot order as: #1 Windows CD #2 virto driver #3 hdd  
+Add Hardware-PCIe something  
+  select the GPU and HDMI audio devices in PCIE  
 
-At this point you should be able install windows in a window
+At this point you should be able install windows in a window  
 you may have to load the virtio driver when selecting the harddrive its not clear, i just installed on an IDE drive accidentally, I'll redo this.
 
 # After installation
@@ -332,11 +366,13 @@ add your keyboard first, as you'll need your mouse to add your mouse.
 Install the latest drivers, nvidia drivers will install but will refuse to work.
 In device manager the device will be disabled due to error: 43 and your resolution winn be bound to 800x600
 to fix this you'll have to find the .xml file of your VM, 
+```
 find / -name "<nameofyourvm>.xml"
-it should be in /etc/qemu/<nameofyourvm>.xml or something like this
+```
+it should be in `/etc/qemu/<nameofyourvm>.xml` or something like this
 
 you'll have to add the lines
-(domain, features and hyperv will probably already be there, but kvm may not be there, just ensure these all exist in this order in your xml)
+
 
 ```
 <domain>
@@ -356,15 +392,15 @@ you'll have to add the lines
     ...
 </domain>
 ```
-
-save the file, reboot a few times, etc
-the driver should now work.
-however it may not for some people
-there is a workaround by patching the driver itself on the guest windows machine, it is kind of experimental:
-https://github.com/sk1080/nvidia-kvm-patcher
+(domain, features and hyperv will probably already be there, but kvm may not be there, just ensure these all exist in this order in your xml)  
+save the file, reboot a few times, etc  
+the driver should now work.  
+however it may not for some people  
+there is a workaround by patching the driver itself on the guest windows machine, it is kind of experimental:  
+https://github.com/sk1080/nvidia-kvm-patcher  
 
 # Plus tips
-**moving the image**
-lets say you created the image in the wrong place or wanna borrow it to your friend,
-real simple, you just gotta change the disk line in /etc/qemu/wmaneme.xml
-and move the file that it was pointing at
+**moving the image**  
+lets say you created the image in the wrong place or wanna borrow it to your friend,  
+real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
+and move the file that it was pointing at  
