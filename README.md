@@ -46,7 +46,7 @@ just write
 ```
 to update your Arch and thank me later ;)
 
-# checking hardware requirements
+# Checking hardware requirements
 Bottom line, it's easier to just try and check. You can enable IOMMU and check whether it worked.
 
 **Blabbering about marketing buzzwords**  
@@ -56,7 +56,7 @@ however none of those links are complete and very clear to understand. I read so
 Do note that if you have two of the same card(e.g.: an msi GTX1060 and another msi GTX1060) and wanna pass only one, you're gonna have a hard time. Dunno if this applies to cards made by different manufacturers, run lspci -nn and check if they have different hardware IDs (gonna be in the format of [1337:ree1] )
 there is some script on the arch wiki for this but I have no idea how that works and I've never tried it.
 
-**blabbering about marketing buzzwords 2: electric blabberoo**  
+**Blabbering about marketing buzzwords 2: electric blabberoo**  
 *"A rose by any other name is just as botnet"*  
 IOMMU==Vti-d==Vti-x=="Virtualization technology"==(whatever amd calls this) - its all the same s#!t mane.  
 Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words. I may also write vfio as vifo because I misread it the first time I saw it and it just burned into my subconcious.
@@ -417,13 +417,13 @@ there is a workaround by patching the driver itself on the guest windows machine
 https://github.com/sk1080/nvidia-kvm-patcher  
 
 # Plus tips
-**config doesn't change in virt-manager**
+**Config doesn't change in virt-manager**
 If you changed some config in a vm xml or just some anytihng you'll have to restart a good few service before virt-manager realises this, your best bet is to just reboot.
 
-**moving the image**  
+**Moving the image**  
 lets say you created the image in the wrong place or wanna lend it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
 and move the file that it was pointing at  
 
-**this is nice and all but it sure is pretty quiet**
+**This is nice and all but it sure is pretty quiet**
 will get back to you once I figure out how to fix the audio.
