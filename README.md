@@ -4,8 +4,8 @@ Config files and down-to-earth setup guide for pcie passthrough on arch linux
 # Setup
 Date: 2017  
 Kernel: 4.14.idontremember  
-CPU: i5-4570 (host gpu) 
-GPU: GTX1060 (guest gpu)
+CPU: i5-4570 (host gpu)  
+GPU: GTX1060 (guest gpu)  
 RAM: 8GB (dont listen to the haters who say you need at least 12)  
 Guest: Windwos 8.1 (7 does not support UEFI boot which is bad for some reason so you'll have an easier time doing it with 8 and 10)  
 
