@@ -49,38 +49,42 @@ however none of those links are complete and very clear to understand. I read so
 Do note that if you have two of the same card(e.g.: an msi GTX1060 and another msi GTX1060) and wanna pass only one, you're gonna have a hard time. Dunno if this applies to cards made by different manufacturers, run lspci -nn and check if they have different hardware IDs (gonna be in the format of [1337:ree1] )
 there is some script on the arch wiki for this but I have no idea how that works and I've never tried it.
 
-**What you actually need to know:**
+**What you actually need to know:**  
 *"A rose by any other name is just as botnet"*  
 IOMMU==Vti-d==Vti-x=="Virtualization technology"==(whatever amd calls this) - its all the same s#!t mane.  
 Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words.
 
-**Bottom line**
+**Bottom line**  
 It's easier to just try and check. You can enable IOMMU and check whether it worked.
 
 # Enabling IOMMU
-**Step 1 - enabling it in BIOS**
+**Step 1 - enabling it in BIOS**  
 What you wanna do is boot into your bios settings(aka mash F12 or Del or TAB while your PC boots) ,and look for a setting called any of the aformentioned names for this (IOMMU vti-d vti-x "Virtualization technology" something like this) and enable it. ThinkPads currently come with a bios that mark this as vti-d and vti-x and MSI motherboards come with a bios that call this "Virtualization technology" as long as you found anything relevant to this, enable it. Look in Advanced settings, cpu settings, OC settings it may be well hidden. If it aint there, you may be out of luck. If you enabled it, boot into Arch.
 
-**Step 2 - enabling it in the bootloader**
+**Step 2 - enabling it in the bootloader**  
 For the purposes of this demonstration (and also because I've never used anything else), I'll describe how to do it if you use grub as a bootloader. If you use "Systemd-boot" whatever that is, a link in at the start of this details that.
 
 Please bear in mind, that your config file will be different to mine, however nothing else needs to be changed for this to work. You'll have  a number of entries in your bootloader (these represent the entries in the grub menu when you boot), you can add this to all of them, or just to the one you usually use. Add it to one and choose that one in the grub menu.
 
-What you wanna do is open 
+What you wanna do is
 ```
-/etc/default/grub
+# vim /etc/default/grub
 ```
 (this may be in a different place depending on your boot folder) and add `intel_iommu=on` in the place I added it in the uploaded config file. (for amd cpus this would be `amd_iommu=on`)
 then remake the grub config via:  
-`# grub-mkconfig -o /boot/grub/grub.cfg`
-(this is the arch equivalent of update-grub form debian if you read one of those pesky debian guides)
+```
+# grub-mkconfig -o /boot/grub/grub.cfg
+```
+(this is the arch equivalent of `update-grub` from debian if you read one of those pesky debian guides)
 
 cool, now reboot and choose the entry in the grub menu that you have modified.
 
 **Step 3 - did it work?**
 open a terminal and enter
+```
 dmesg | grep -e DMAR -e IOMMU
-around the second line you should have something like Intel-IOMMU: enabled
+```
+around the second line you should have something like `Intel-IOMMU: enabled`
 you should also probably have like 10-20 other lines.
 if your output doesn't look something like this
 ```
@@ -109,27 +113,39 @@ I can't help you :(
 # Checking the IOMMU groups
 IOMMU groups devices based on some magic I'm not smart enough to tell you about. But I dont really need to understand it to take advantage of it right?
 so type:
+```
 lspci -nn
+```
 and
+```
 find /sys/kernel/iommu_groups/ -type l
+```
 
-In the output of lspci -nn, you'll have a number of pci devices with their  respective IDs like this:
+In the output of `lspci -nn`, you'll have a number of pci devices with their  respective IDs like this:
 
 find the line describing the gpu you wanna passthrough, its gonna be something like "VGA" or 3D controller and then the name of your GPU e.g.: NVIDIA Corporation GTX1060 or something like this:
+```
 01:00.0 3D controller [0302]: NVIDIA Corporation GF117M [GeForce 610M/710M/810M/820M / GT 620M/625M/630M/720M] [10de:1140] (rev a1)
+```
 note the number at the beginning of the line **01:00.0**
 
 Note: this is not the ID of a GTX1060, this is another laptops dedicated GPU that I'm writing this from.
 
 
-Now look at the output of find /sys/kernel/iommu_groups/ -type l. Its gonna have lines like this:
+Now look at the output of `find /sys/kernel/iommu_groups/ -type l`. Its gonna have lines like this:
+```
 /sys/kernel/iommu_groups/1/devices/0000:00:02.0
+```
 at the end of these entries you also have a number in the format **00:02.0**
 
-so every line in find /sys/kernel/iommu_groups/ -type l contains a group ID
+so every line in `find /sys/kernel/iommu_groups/ -type l` contains a group ID
+```
 /sys/kernel/iommu_groups/**1**/devices/0000:00:02.0
+```
 and a device ID
+```
 /sys/kernel/iommu_groups/1/devices/0000:**00:02.0**
+```
 
 what you wanna do is look for the line that has your GPU's device ID (identified from lspci -nn) and check the group ID of that line. There lie now 4 possibilities in front of us:
 **Possibility 1: there is no line containing the hardware ID of your GPU in the output of find /sys/kernel/iommu_groups/ -type l**
