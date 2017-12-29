@@ -20,7 +20,7 @@ pretty good guide
 https://bufferoverflow.io/gpu-passthrough/
 
 # Checking software requirements
-easiest things first, you need some kernel after 4.1 I belive to support vfio-pci, you can check your kernel version via  
+Easiest things first, you need some kernel after 4.1 I belive to support vfio-pci, you can check your kernel version via  
 ```
 uname -r
 ```
