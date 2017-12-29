@@ -2,21 +2,19 @@
 config files and down-to-earth setup guide for pcie passthrough on arch linux  
 Date: 2017  
 Kernel: 4.14.idontremember  
-CPU:i5-4570  
-GPU:GTX1060  
-RAM:8GB (dont listen to the haters who say you need at least 12)  
+CPU: i5-4570  
+GPU: GTX1060  
+RAM: 8GB (dont listen to the haters who say you need at least 12)  
+Guest: Windwos 8.1 (7 does not support UEFI which is bad for some reason so you'll have an easier time doing it with 8 and 10)  
 
-This was done (2017) on standard ARCH x86_64 kernel 4.14. using a GTX1060 and an i5-4570(the integrated gpu was used for the host linux)
-the guest is a windows 8.1 (7 does not support UEFI which is bad for some reason so you'll have an easier time doing it with 8 and 10)
-
-a guide out of many, which is base this on. Not completely up to date, will throw issues
+a guide out of many, which is base this on. Not completely up to date, will throw issues  
 https://dominicm.com/gpu-passthrough-qemu-arch-linux/
 
-pretty good video, if you're the visual type:
-https://www.youtube.com/watch?v=6FI31QDtyy4
+pretty good video, if you're the visual type:  
+https://www.youtube.com/watch?v=6FI31QDtyy4  
 will not work without fixing error 43, see below
 
-pretty good guide
+pretty good guide  
 https://bufferoverflow.io/gpu-passthrough/
 
 # Checking software requirements
