@@ -26,7 +26,7 @@ modinfo vfio-pci
 ```
 if this does not throw "i dont know wtf is vfio-pci" then you are golden
 
-**Uninportant stuff**  
+**You can skip this if you didnt get an error**  
 Easiest things first, you need some kernel after 4.1 I belive, to support vfio-pci. You can check your kernel version via  
 ```
 uname -r
@@ -46,14 +46,14 @@ to update your Arch and thank me later ;)
 # checking hardware requirements
 Bottom line, it's easier to just try and check. You can enable IOMMU and check whether it worked.
 
-**Blabbering about marketing buzzwords**
+**Blabbering about marketing buzzwords**  
 So there is a bunch of links and things on the arch wiki page for what CPU/motherboard supports this,
 however none of those links are complete and very clear to understand. I read somewhere that your GPU should have an UEFI rom. I'll be the first to say I have no idea what that means, and how to check this. if you have a gpu that is worth passing through it probably supports it
 
 Do note that if you have two of the same card(e.g.: an msi GTX1060 and another msi GTX1060) and wanna pass only one, you're gonna have a hard time. Dunno if this applies to cards made by different manufacturers, run lspci -nn and check if they have different hardware IDs (gonna be in the format of [1337:ree1] )
 there is some script on the arch wiki for this but I have no idea how that works and I've never tried it.
 
-**More blabbering about marketing buzzwords**  
+**blabbering about marketing buzzwords 2: electric blabberoo**  
 *"A rose by any other name is just as botnet"*  
 IOMMU==Vti-d==Vti-x=="Virtualization technology"==(whatever amd calls this) - its all the same s#!t mane.  
 Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words.
