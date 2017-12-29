@@ -1,5 +1,11 @@
 # PCIE-Passthrough_Arch-Linux
 config files and down-to-earth setup guide for pcie passthrough on arch linux
+Date: 2017
+Kernel: 4.14.idontremember
+CPU:i5-4570
+GPU:GTX1060
+RAM:8GB (dont listen to the haters who say you need at least 12)
+
 This was done (2017) on standard ARCH x86_64 kernel 4.14. using a GTX1060 and an i5-4570(the integrated gpu was used for the host linux)
 the guest is a windows 8.1 (7 does not support UEFI which is bad for some reason so you'll have an easier time doing it with 8 and 10)
 
