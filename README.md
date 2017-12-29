@@ -20,7 +20,14 @@ pretty good guide
 https://bufferoverflow.io/gpu-passthrough/
 
 # Checking software requirements
-Easiest things first, you need some kernel after 4.1 I belive to support vfio-pci, you can check your kernel version via  
+Just check if your kernel supports vfio-pci via
+```
+modinfo vfio-pci
+```
+if this does not throw "i dont know wtf is vfio-pci" then you are golden
+
+**Uninportant stuff**  
+Easiest things first, you need some kernel after 4.1 I belive, to support vfio-pci. You can check your kernel version via  
 ```
 uname -r
 ```
@@ -29,37 +36,40 @@ or
 uname -a
 ```
 
-if you for some reason do not have an up-to-date kernel.... why? Also there is a way to do this witohut vfio-pci with pci-stub, that should work on older kernels, but I have no idea how.  
+if you, for some reason do not have an up-to-date kernel.... why? Also there is a way to do this without vfio-pci, with pci-stub that should work on older kernels, but I have no idea how.  
 just write  
 ```
 # pacman -Syyu
 ```
-to update your arch and thank me later ;)
-
-you can also just check if your kernel supports vfio-pci via
-```
-modinfo vfio-pci
-```
-if this does not throw "i dont know wtf is vfio-pci" then you are golden
+to update your Arch and thank me later ;)
 
 # checking hardware requirements
+Bottom line, it's easier to just try and check. You can enable IOMMU and check whether it worked.
+
+**Blabbering about marketing buzzwords**
 So there is a bunch of links and things on the arch wiki page for what CPU/motherboard supports this,
 however none of those links are complete and very clear to understand. I read somewhere that your GPU should have an UEFI rom. I'll be the first to say I have no idea what that means, and how to check this. if you have a gpu that is worth passing through it probably supports it
 
 Do note that if you have two of the same card(e.g.: an msi GTX1060 and another msi GTX1060) and wanna pass only one, you're gonna have a hard time. Dunno if this applies to cards made by different manufacturers, run lspci -nn and check if they have different hardware IDs (gonna be in the format of [1337:ree1] )
 there is some script on the arch wiki for this but I have no idea how that works and I've never tried it.
 
-**What you actually need to know:**  
+**More blabbering about marketing buzzwords**  
 *"A rose by any other name is just as botnet"*  
 IOMMU==Vti-d==Vti-x=="Virtualization technology"==(whatever amd calls this) - its all the same s#!t mane.  
 Technically this is incorrect, as some of these are different technologies but if you bought a CPU and motherboard in this century, you should be OK. I'm gonna call this feature IOMMU throught this guide, and I'll also call UEFI BIOS, because I'm oldschool like that, and I dont like to learn new words.
 
-**Bottom line**  
-It's easier to just try and check. You can enable IOMMU and check whether it worked.
 
 # Enabling IOMMU
 **Step 1 - enabling it in BIOS**  
-What you wanna do is boot into your bios settings(aka mash F12 or Del or TAB while your PC boots) ,and look for a setting called any of the aformentioned names for this (IOMMU vti-d vti-x "Virtualization technology" something like this) and enable it. ThinkPads currently come with a bios that mark this as vti-d and vti-x and MSI motherboards come with a bios that call this "Virtualization technology" as long as you found anything relevant to this, enable it. Look in Advanced settings, cpu settings, OC settings it may be well hidden. If it aint there, you may be out of luck. If you enabled it, boot into Arch.
+What you wanna do is boot into your bios settings(aka mash F12 or Del or TAB while your PC boots) ,and look for a setting called any of the following names:  
+ - IOMMU  
+ - vti-d  
+ - vti-x  
+ - "Virtualization technology"  
+
+and enable it. 
+
+ThinkPads currently come with a bios that mark this as vti-d and vti-x and MSI motherboards come with a bios that call this "Virtualization technology" as long as you found anything relevant to this, enable it. Look in Advanced settings, cpu settings, OC settings it may be well hidden. If it aint there, you may be out of luck. If you enabled it, boot into Arch.
 
 **Step 2 - enabling it in the bootloader**  
 For the purposes of this demonstration (and also because I've never used anything else), I'll describe how to do it if you use grub as a bootloader. If you use "Systemd-boot" whatever that is, a link in at the start of this details that.
@@ -214,7 +224,7 @@ regardless add the following between the "" or ():
 ```
 vfio vfio_iommu_type1 vfio_pci vfio_virqfd
 ```
-if there was anything already there, be sure to write this **before** whatever was there, e.g.:
+if there was anything already there like i915 or nouveau, be sure to write this **before** whatever was there, e.g.:
 ```
 MODULES(vfio vfio_iommu_type1 vfio_pci vfio_virqfd i915 nouveau)
 ```
@@ -255,7 +265,7 @@ it should look something like this
     	Kernel driver in use: vfio-pci
     	Kernel modules: snd_hda_intel
 ```
-if it doesnt look like that, you messed something up, recheck your conf files, re run 
+note the `Kernel driver in use:` parameter. If it doesnt look like that, you messed something up, recheck your conf files, re run 
 ```
 sudo mkinitcpio -p linux
 ```
@@ -361,7 +371,7 @@ Remove the devices QXL and spice, and change the windows should now come through
 mouse and keyboard will no longer work however,
 you can plug in extra mice and keyboard, or just give it your own,
 Add Hardware-> USB something
-add your keyboard first, as you'll need your mouse to add your mouse.
+add your keyboard first, as you'll need your mouse to add your mouse. (you'll get them back when you shut down the VM)
 
 Install the latest drivers, nvidia drivers will install but will refuse to work.
 In device manager the device will be disabled due to error: 43 and your resolution winn be bound to 800x600
@@ -401,7 +411,7 @@ https://github.com/sk1080/nvidia-kvm-patcher
 
 # Plus tips
 **moving the image**  
-lets say you created the image in the wrong place or wanna borrow it to your friend,  
+lets say you created the image in the wrong place or wanna lend it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
 and move the file that it was pointing at  
 
