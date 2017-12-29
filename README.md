@@ -61,7 +61,7 @@ Technically this is incorrect, as some of these are different technologies but i
 
 # Enabling IOMMU
 **Step 1 - enabling it in BIOS**  
-What you wanna do is boot into your bios settings(aka mash F12 or Del or TAB while your PC boots) ,and look for a setting called any of the following names:  
+What you wanna do is boot into your bios settings (aka mash F12 or Del or TAB while your PC boots) ,and look for a setting called any of the following:  
  - IOMMU  
  - vti-d  
  - vti-x  
