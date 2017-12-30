@@ -90,7 +90,7 @@ then remake the grub config via:
 ```
 (this is the arch equivalent of `update-grub` from debian if you read one of those pesky debian guides)
 
-cool, now reboot and choose the entry in the grub menu that you have modified.
+cool, now reboot.
 
 **Step 3 - did it work?**  
 open a terminal and enter
