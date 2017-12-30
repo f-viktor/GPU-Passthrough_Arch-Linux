@@ -77,13 +77,13 @@ ThinkPads currently come with a bios that mark this as vti-d and vti-x and MSI m
 **Step 2 - enabling it in the bootloader**  
 For the purposes of this demonstration (and also because I've never used anything else), I'll describe how to do it if you use grub as a bootloader. If you use "Systemd-boot" whatever that is, a link https://dominicm.com/gpu-passthrough-qemu-arch-linux/ that details that.
 
-Please bear in mind, that your config file will be different to mine, however nothing else needs to be changed for this to work. You'll have  a number of entries in your bootloader (these represent the entries in the grub menu when you boot), you can add this to all of them, or just to the one you usually use. Add it to one and choose that one in the grub menu.
+Please bear in mind, that your config file will be different to mine, however nothing else needs to be changed for this to work. 
 
 What you wanna do is
 ```
 # vim /etc/default/grub
 ```
-(this may be in a different place depending on your boot folder) and add `intel_iommu=on` in the place I added it in the uploaded config file. (for amd cpus this would be `amd_iommu=on`)
+and add `intel_iommu=on` in the place I added it in the uploaded config file. (for amd cpus this would be `amd_iommu=on`)
 then remake the grub config via:  
 ```
 # grub-mkconfig -o /boot/grub/grub.cfg
@@ -209,10 +209,11 @@ now remake grub
 # grub-mkconfig -o /boot/grub/grub.cfg
 ```
 should automagically find the new kernels that are named something like vmlinuz-linux-vifo  
-find that line in grub.conf (same file we added `intel_iommu=on`) and add to that line separated by a space:
+find the relevan kernel entry in `/boot/grub/grub.conf` (or wherever is your default boot directory) and add to the options after `intel_iommu=on` the following separated by a space:
 ```
 pcie_acs_override=downstream
 ```
+(you can also just add it in `/etc/default/grub` like we did for ˙`intel_iommu`, but that will add it for all your kernels, and it may or may not cause an issue when running other kernels. if you do this, rerun `grub-mkconfig`)
 save it and reboot, then choose this kernel in the boot menu (it may be under advanced options in the grub menu)  
 check if it is the vfio kernel via 
 ```
@@ -418,12 +419,12 @@ https://github.com/sk1080/nvidia-kvm-patcher
 
 # Plus tips
 **Config doesn't change in virt-manager**
-If you changed some config in a vm xml or just some anytihng you'll have to restart a good few service before virt-manager realises this, your best bet is to just reboot.
+If you changed some config in a vm xml or just some anytihng you'll have to restart a good few services before virt-manager realises this, your best bet is to just reboot.
 
 **Moving the image**  
 lets say you created the image in the wrong place or wanna lend it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
 and move the file that it was pointing at  
 
-**This is nice and all but it sure is pretty quiet**
+**This is nice and all but it sure is pretty quiet**  
 will get back to you once I figure out how to fix the audio.
