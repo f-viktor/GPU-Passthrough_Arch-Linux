@@ -385,9 +385,9 @@ Install the latest drivers, nvidia drivers will install but will refuse to work.
 In device manager the device will be disabled due to error: 43 and your resolution winn be bound to 800x600
 to fix this you'll have to find the .xml file of your VM, 
 ```
-find / -name "<nameofyourvm>.xml"
+$ locate <nameofyourvm>
 ```
-it should be in `/etc/qemu/<nameofyourvm>.xml` or something like this
+if you dont have locate, you can use find. It should be in `/etc/libvirt/qemu/<nameofyourvm>.xml` or something like this
 
 you'll have to add the lines
 
@@ -410,7 +410,7 @@ you'll have to add the lines
     ...
 </domain>
 ```
-(domain, features and hyperv will probably already be there, but kvm may not be there, just ensure these all exist in this order in your xml)  
+(domain, features and hyperv will probably already be there, but kvm may not be there, just ensure these all exist in this structure in your xml)  
 save the file, reboot a few times, etc  
 the driver should now work.  
 however it may not for some people  
