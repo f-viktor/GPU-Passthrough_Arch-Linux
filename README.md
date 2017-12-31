@@ -252,7 +252,7 @@ edit
 
 and write the line
 ```
-options vfio-pci ids=1002:67df,1002:aaf0
+options vfio-pci ids=10de:1c03,10de:10f1
 ```
 where the ids= are the hardware ID of the GPU and HDMI audio device from the output of `lspci -nn`
 
