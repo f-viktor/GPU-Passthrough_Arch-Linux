@@ -352,6 +352,7 @@ just do
 ```
 # virsh net-start default
 ```
+this will throw an error this time, because the network does not yet exist, but you'll have to do this every time after creating your first vm if you put it in the default network, otherwise it will not start.
 and to start virt-manager
 ```
 # virt-manager
