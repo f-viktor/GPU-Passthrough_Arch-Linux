@@ -256,6 +256,11 @@ options vfio-pci ids=10de:1c03,10de:10f1
 ```
 where the ids= are the hardware ID of the GPU and HDMI audio device from the output of `lspci -nn`
 
+rerun
+```
+sudo mkinitcpio -p linux
+```
+for good measure
 then reboot
 
 afte rebooting, write
