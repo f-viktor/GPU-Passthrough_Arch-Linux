@@ -352,7 +352,7 @@ just do
 ```
 # virsh net-start default
 ```
-this will throw an error this time, because the network does not yet exist, but you'll have to do this every time after creating your first vm if you put it in the default network, otherwise it will not start.
+this will throw an error this time, because the network does not yet exist, but you'll have to do this every time after creating your first vm if you put it in the default network, otherwise it will not start. You can also just pass the host network device to the VM, but this will not allow you to communicate from your host to the guest through the network, as they would have to use the same NIC.
 and to start virt-manager
 ```
 # virt-manager
@@ -423,6 +423,15 @@ however it may not for some people
 there is a workaround by patching the driver itself on the guest windows machine, it is kind of experimental:  
 https://github.com/sk1080/nvidia-kvm-patcher  
 
+# Creating sound
+You can either buy a PCIe/USB soundboard and pass it through, or you can be cheapskate like me
+
+**Setting up audio with PulseAudio**
+You can pass back the audio output of the VM to PulseAudio as a normal application.
+Please note that this does not allow audio into the VM (it may be possible to do but idk how)
+Just follow the arch wiki guide, it is simple and detailed:
+https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Passing_VM_audio_to_host_via_PulseAudio
+
 # Plus tips
 **Config doesn't change in virt-manager**
 If you changed some config in a vm xml or just some anytihng you'll have to restart a good few services before virt-manager realises this, your best bet is to just reboot.
@@ -431,6 +440,3 @@ If you changed some config in a vm xml or just some anytihng you'll have to rest
 lets say you created the image in the wrong place or wanna lend it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
 and move the file that it was pointing at  
-
-**This is nice and all but it sure is pretty quiet**  
-will get back to you once I figure out how to fix the audio.
