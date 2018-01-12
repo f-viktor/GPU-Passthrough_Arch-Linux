@@ -380,6 +380,22 @@ Add Hardware-PCIe something
 At this point you should be able install windows in a window  
 you may have to load the virtio driver when selecting the harddrive its not clear, i just installed on an IDE drive accidentally, I'll redo this.
 
+**Step 3: fixing CPU performance**
+If your CPU multicore performance benchmarks horribly with this setup, it may be because QEMU by default virtualizes cpu cores as separate sockets. The issue is that Windows can handle up to 2 separate sockets in a system, and if you pass more than that, it'll just ignore those cores/sockets. A telltale sign of this is when you press Win+Pause|Breake, you'll see it saying 2 cpus, but in device managers it will show 4 cpu devices.  To fix tihs, simpy go to the CPU menu in virt-manager and choose  
+CPU:  
+Manually set CPU topology  
+you should see something like     
+Sockets: 4  
+Cores: 1   
+Threads: 1  
+
+Change this to:  
+Sockets: 1  
+Cores: 4  
+Threads: 1  
+
+Now Windows should see the CPU as 1 cpu with 4 cores.
+
 # After installation
 Remove the devices QXL and spice, and change the windows should now come through your GPU that you passed through.
 mouse and keyboard will no longer work however,
@@ -433,6 +449,7 @@ Just follow the arch wiki guide, it is simple and detailed:
 https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Passing_VM_audio_to_host_via_PulseAudio
 
 # Plus tips
+
 **Config doesn't change in virt-manager**
 If you changed some config in a vm xml or just some anytihng you'll have to restart a good few services before virt-manager realises this, your best bet is to just reboot.
 
