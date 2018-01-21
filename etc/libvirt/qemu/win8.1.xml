@@ -5,12 +5,12 @@ OVERWRITTEN AND LOST. Changes to this xml configuration should be made using:
 or other application using the libvirt API.
 -->
 
-<domain type='kvm'>
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
   <name>win8.1</name>
-  <uuid>6d8cd9f1-d8e4-4aaa-80e8-0f6ab9bc5a13</uuid>
+  <uuid>b3eec8c2-39d6-45db-9d06-4e8fbef55efa</uuid>
   <memory unit='KiB'>6291456</memory>
   <currentMemory unit='KiB'>6291456</currentMemory>
-  <vcpu placement='static'>3</vcpu>
+  <vcpu placement='static'>4</vcpu>
   <os>
     <type arch='x86_64' machine='pc-i440fx-2.11'>hvm</type>
     <loader readonly='yes' type='pflash'>/usr/share/edk2.git/ovmf-x64/OVMF-pure-efi.fd</loader>
@@ -24,7 +24,7 @@ or other application using the libvirt API.
       <relaxed state='on'/>
       <vapic state='on'/>
       <spinlocks state='on' retries='8191'/>
-      <vendor_id state='on' value='whateverfour'/>
+      <vendor_id state='on' value='whatever'/>
     </hyperv>
     <kvm>
       <hidden state='on'/>
@@ -33,6 +33,7 @@ or other application using the libvirt API.
   </features>
   <cpu mode='host-model' check='partial'>
     <model fallback='allow'/>
+    <topology sockets='1' cores='4' threads='1'/>
   </cpu>
   <clock offset='localtime'>
     <timer name='rtc' tickpolicy='catchup'/>
@@ -49,26 +50,12 @@ or other application using the libvirt API.
   </pm>
   <devices>
     <emulator>/usr/bin/qemu-system-x86_64</emulator>
-    <disk type='file' device='cdrom'>
-      <driver name='qemu' type='raw'/>
-      <source file='/home/pepe/Downloads/hu_windows_8.1_pro_vl_with_update_x64_dvd_6050888.iso'/>
-      <target dev='sda' bus='sata'/>
-      <readonly/>
-      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
-    </disk>
-    <disk type='file' device='cdrom'>
-      <driver name='qemu' type='raw'/>
-      <source file='/home/pepe/Downloads/virtio-win-0.1.141.iso'/>
-      <target dev='sdb' bus='sata'/>
-      <readonly/>
-      <address type='drive' controller='0' bus='0' target='0' unit='1'/>
-    </disk>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/mnt/ssd/kvmimages/win8.1.qcow2'/>
-      <target dev='sdc' bus='sata'/>
-      <boot order='1'/>
-      <address type='drive' controller='0' bus='0' target='0' unit='2'/>
+      <source file='/mnt/ssd/qemuimages/win8.1.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <boot order='3'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
     </disk>
     <controller type='usb' index='0' model='ich9-ehci1'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x7'/>
@@ -86,18 +73,15 @@ or other application using the libvirt API.
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x2'/>
     </controller>
     <controller type='pci' index='0' model='pci-root'/>
-    <controller type='ide' index='0'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
-    </controller>
-    <controller type='virtio-serial' index='0'>
+    <controller type='sata' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
     </controller>
-    <controller type='sata' index='0'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x0a' function='0x0'/>
+    <controller type='virtio-serial' index='0'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
     </controller>
-    <interface type='network'>
-      <mac address='52:54:00:c3:c0:4b'/>
-      <source network='default'/>
+    <interface type='direct'>
+      <mac address='52:54:00:a0:ad:01'/>
+      <source dev='enp3s0' mode='bridge'/>
       <model type='rtl8139'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
     </interface>
@@ -113,6 +97,9 @@ or other application using the libvirt API.
       <target type='virtio' name='com.redhat.spice.0'/>
       <address type='virtio-serial' controller='0' bus='0' port='1'/>
     </channel>
+    <input type='tablet' bus='usb'>
+      <address type='usb' bus='0' port='1'/>
+    </input>
     <input type='mouse' bus='ps2'/>
     <input type='keyboard' bus='ps2'/>
     <sound model='ich6'>
@@ -122,13 +109,13 @@ or other application using the libvirt API.
       <source>
         <address domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
       </source>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
     </hostdev>
     <hostdev mode='subsystem' type='pci' managed='yes'>
       <source>
         <address domain='0x0000' bus='0x01' slot='0x00' function='0x1'/>
       </source>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0a' function='0x0'/>
     </hostdev>
     <hostdev mode='subsystem' type='usb' managed='yes'>
       <source>
@@ -137,13 +124,6 @@ or other application using the libvirt API.
       </source>
       <address type='usb' bus='0' port='4'/>
     </hostdev>
-    <hostdev mode='subsystem' type='usb' managed='yes'>
-      <source>
-        <vendor id='0x1a2c'/>
-        <product id='0x0c21'/>
-      </source>
-      <address type='usb' bus='0' port='5'/>
-    </hostdev>
     <redirdev bus='usb' type='spicevmc'>
       <address type='usb' bus='0' port='2'/>
     </redirdev>
@@ -151,7 +131,11 @@ or other application using the libvirt API.
       <address type='usb' bus='0' port='3'/>
     </redirdev>
     <memballoon model='virtio'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0b' function='0x0'/>
     </memballoon>
   </devices>
+  <qemu:commandline>
+    <qemu:env name='QEMU_AUDIO_DRV' value='pa'/>
+    <qemu:env name='QEMU_PA_SERVER' value='/run/user/1000/pulse/native'/>
+  </qemu:commandline>
 </domain>
