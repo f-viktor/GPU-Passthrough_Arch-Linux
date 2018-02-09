@@ -448,6 +448,15 @@ Please note that this does not allow audio into the VM (it may be possible to do
 Just follow the arch wiki guide, it is simple and detailed:
 https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Passing_VM_audio_to_host_via_PulseAudio
 
+**Windows10 sound problems with PulseAudio**
+Being that Windows10 is Windows10, it tries to be smarter than you and fails miserably every single time.  
+If you're running a Windows10 kvm with ich6, Windows10 will install the Realtek hi-def audio driver, this will produce some audio problems, that could best be described as the sound of someone stabbing your ears from really far away.  
+
+To fix this you need to set the sound card in virt-manager (or wherever you may please) from ich6 to ac97. After this reboot the KVM a few times and a "Multimedia device" or something should appear in Device manager. Download the appropriate drivers (http://www.realtek.com.tw/downloads/downloadsCheck.aspx?Langid=1&PNid=14&PFid=23&Level=4&Conn=3&DownTypeID=3&GetDown=false). Funny thing, the drivers are from waaaay back in the day, so their certificate is expired. You'll have to disable driver certificate validation in windows10 and install these drivers, then viola.
+
+Forum post describing the same issue and fix: https://stackoverflow.com/questions/32193050/qemu-pulseaudio-and-bad-quality-of-sound/35998501#35998501  
+A video on disabling driver certificate checks: https://www.youtube.com/watch?v=5-Y-oq3DMMA
+
 # Plus tips
 
 **Config doesn't change in virt-manager**
