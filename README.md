@@ -448,7 +448,7 @@ Please note that this does not allow audio into the VM (it may be possible to do
 Just follow the arch wiki guide, it is simple and detailed:
 https://wiki.archlinux.org/index.php/PCI_passthrough_via_OVMF#Passing_VM_audio_to_host_via_PulseAudio
 
-**Windows10 sound problems with PulseAudio**
+**Windows10 sound problems with PulseAudio**  
 Being that Windows10 is Windows10, it tries to be smarter than you and fails miserably every single time.  
 If you're running a Windows10 kvm with ich6, Windows10 will install the Realtek hi-def audio driver, this will produce some audio problems, that could best be described as the sound of someone stabbing your ears from really far away.  
 
