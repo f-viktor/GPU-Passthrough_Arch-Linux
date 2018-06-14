@@ -466,3 +466,9 @@ If you changed some config in a vm xml or just some anytihng you'll have to rest
 lets say you created the image in the wrong place or wanna lend it to your friend,  
 real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`  
 and move the file that it was pointing at  
+
+**Unknown devices in Guest device manager**
+
+**Preventing BSOD in some applications
+
+**In case some games unexpectedly crash on startup**
