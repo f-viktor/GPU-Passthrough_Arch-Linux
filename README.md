@@ -7,7 +7,7 @@ Kernel: 4.14.idontremember
 CPU: i5-4570 (host gpu)  
 GPU: GTX1060 (guest gpu)  
 RAM: 8GB (dont listen to the haters who say you need at least 12)  
-Guest: Windwos 8.1 (7 does not support UEFI boot which is bad for some reason so you'll have an easier time doing it with 8 and 10)  
+Guest: Windwos8.1 and Windows10 (7 does not support UEFI boot which is bad for some reason so you'll have an easier time doing it with 8 and 10)  
 
 a guide out of many, which is base this on. Not completely up to date, will throw issues  
 https://dominicm.com/gpu-passthrough-qemu-arch-linux/
@@ -318,7 +318,7 @@ Your files should be in
 ```
 after this.
 
-# Apllying the latest ovmf
+# Applying the latest ovmf
 now we gotta tell qemu to actually use what you downloaded
 for this you'll need to edit this file:
 ```
@@ -352,7 +352,7 @@ just do
 ```
 # virsh net-start default
 ```
-this will throw an error this time, because the network does not yet exist, but you'll have to do this every time after creating your first vm if you put it in the default network, otherwise it will not start. You can also just pass the host network device to the VM, but this will not allow you to communicate from your host to the guest through the network, as they would have to use the same NIC.
+this will throw an error this time, because the network does not yet exist, but you'll have to do this every time after creating your first vm if you put it in the default network, otherwise it will not start. You can also just pass the host network device to the VM, but this will not allow you to communicate from your host to the guest through the network, as they would have to use the same NIC.  
 and to start virt-manager
 ```
 # virt-manager
@@ -378,7 +378,7 @@ Add Hardware-PCIe something
   select the GPU and HDMI audio devices in PCIE  
 
 At this point you should be able install windows in a window  
-you may have to load the virtio driver when selecting the harddrive its not clear, i just installed on an IDE drive accidentally, I'll redo this.
+you will have to load the virtio driver when selecting the harddrive otherwise you won't see any disks.
 
 **Step 3: fixing CPU performance**
 If your CPU multicore performance benchmarks horribly with this setup, it may be because QEMU by default virtualizes cpu cores as separate sockets. The issue is that Windows can handle up to 2 separate sockets in a system, and if you pass more than that, it'll just ignore those cores/sockets. A telltale sign of this is when you press Win+Pause|Breake, you'll see it saying 2 cpus, but in device managers it will show 4 cpu devices.  To fix tihs, simpy go to the CPU menu in virt-manager and choose  
@@ -404,7 +404,7 @@ Add Hardware-> USB something
 add your keyboard first, as you'll need your mouse to add your mouse. (you'll get them back when you shut down the VM)
 
 Install the latest drivers, nvidia drivers will install but will refuse to work.
-In device manager the device will be disabled due to error: 43 and your resolution winn be bound to 800x600
+In device manager the device will be disabled due to error: 43 and your resolution will be bound to 800x600
 to fix this you'll have to find the .xml file of your VM, 
 ```
 $ locate <nameofyourvm>
@@ -468,7 +468,21 @@ real simple, you just gotta change the disk line in `/etc/qemu/wmaneme.xml`
 and move the file that it was pointing at  
 
 **Unknown devices in Guest device manager**
+This might happen to you if you use the virtualised storage described in this guide. I had `PCI device` and `PCI Communications device` or something as "no device found" in device manager. This is because Windows does not know the VirtIO drivers by itself. Download the .iso of the drivers to your guest from https://fedoraproject.org/wiki/Windows_Virtio_Drivers  (Stable virtio-win iso) and mount it with something like Virtual CloneDrive.  
+As to which drivers do you actually need, chose the device in the Device manager, go to details and google the HardwareID. Google will throw a bunch of cancer "Driver download" sites where you can download malware. But they also identify the neccessary drivers correctly. If you followed this guide you'll have install the "Balloon" driver for the `PCI Device` and the "serial" driver for the `PCI Communications device`.
 
-**Preventing BSOD in some applications
+**Preventing BSOD in some applications**
+You may find that certain applications cause a BSOD on startup or basically at any given time. This may be caused by an unimplemented MSR call. What's an MSR call, you ask? No idea, but by writing this `options kvm ignore_msrs=1
+` into `/etc/modprobe.d/kvm.conf` it might fix it. This may cause some other unexpected issues, so do not enable it if you don't get BSODs.
 
 **In case some games unexpectedly crash on startup**
+If some applications (Usually multiplayer games) crash on startup and you have no idea why, try adding the following: 
+```
+<qemu:commandline>
+    ...
+    <qemu:arg value='-cpu'/>
+    <qemu:arg value='host,hv_time,kvm=off,hv_vendor_id=null,-hypervisor'/>
+    ...
+  </qemu:commandline>
+```
+to your `/etc/libvirt/qemu/VMname.xml` you can see this in my Win10.xml in this repo.
