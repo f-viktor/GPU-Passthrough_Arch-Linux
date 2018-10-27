@@ -341,6 +341,9 @@ systemctl enable virtlogd.socket
 ```
 do a reboot just for good measure, even though its probably unnecessary
 
+if libvirtd doesnt start, and systemctl status libvirtd gives you something like "cannot find user 'tss'" just 
+`sudo useradd -G tss tss` to create the user and the group tss
+
 # Creating the VM
 kay so lets do this, LEEEEROOOOY JENKIIIHNS  
 the video I mentioned earlier makes this way easier but misses some things:  
